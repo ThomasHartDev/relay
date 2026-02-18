@@ -47,3 +47,12 @@ export const DEAL_STAGE_CONFIG: Record<DealStage, DealStageConfig> = {
 };
 
 export const ACTIVE_DEAL_STAGES: DealStage[] = ["PROSPECT", "QUALIFIED", "PROPOSAL", "NEGOTIATION"];
+
+export const DEAL_STAGE_LABELS: Record<DealStage, string> = {
+  PROSPECT: "Prospect",
+  QUALIFIED: "Qualified",
+  PROPOSAL: "Proposal",
+  NEGOTIATION: "Negotiation",
+  WON: "Won",
+  LOST: "Lost",
+};
