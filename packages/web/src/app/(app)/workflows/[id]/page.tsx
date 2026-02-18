@@ -1,18 +1,24 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Save, Undo2, Redo2, Zap, Play, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { WorkflowStatusBadge } from "@/components/workflows/workflow-status-badge";
-import { WorkflowCanvas } from "@/components/workflows/workflow-canvas";
 import { NodePalette } from "@/components/workflows/node-palette";
 import { NodeConfigPanel } from "@/components/workflows/node-config-panel";
-import { ExecutionHistory } from "@/components/workflows/execution-history";
 import { useWorkflowCanvasStore, type WorkflowNodeData } from "@/lib/stores/workflow-canvas-store";
 import type { WorkflowStatus, WorkflowTriggerType } from "@relay/shared";
 import type { Node, Edge } from "@xyflow/react";
+
+// Lazy load heavy components — React Flow is ~200KB
+const WorkflowCanvas = lazy(() =>
+  import("@/components/workflows/workflow-canvas").then((m) => ({ default: m.WorkflowCanvas })),
+);
+const ExecutionHistory = lazy(() =>
+  import("@/components/workflows/execution-history").then((m) => ({ default: m.ExecutionHistory })),
+);
 
 interface WorkflowDetail {
   id: string;
@@ -349,7 +355,9 @@ export default function WorkflowDetailPage() {
 
           {/* Center: Canvas */}
           <div className="min-w-0 flex-1 overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
-            <WorkflowCanvas />
+            <Suspense fallback={<Skeleton className="h-full w-full" />}>
+              <WorkflowCanvas />
+            </Suspense>
           </div>
 
           {/* Right: Config panel */}
@@ -365,7 +373,9 @@ export default function WorkflowDetailPage() {
         </div>
       ) : (
         <div className="min-h-0 flex-1 overflow-y-auto rounded-lg border border-gray-200 bg-white p-4">
-          <ExecutionHistory workflowId={workflow.id} />
+          <Suspense fallback={<Skeleton className="h-64" />}>
+            <ExecutionHistory workflowId={workflow.id} />
+          </Suspense>
         </div>
       )}
     </div>
