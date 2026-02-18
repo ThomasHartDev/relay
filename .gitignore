@@ -33,7 +33,10 @@ pnpm-debug.log*
 
 # prisma
 packages/db/prisma/*.db
+packages/db/src/generated
 
 # project instructions
 CLAUDE.md
 .claude/
+
+.vercel
