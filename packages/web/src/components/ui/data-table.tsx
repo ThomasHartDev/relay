@@ -63,6 +63,12 @@ function DataTable<T>({
     });
   }, [data, sortKey, sortDirection]);
 
+  function getAriaSortValue(col: Column<T>): "ascending" | "descending" | "none" | undefined {
+    if (!col.sortable) return undefined;
+    if (sortKey !== col.key || !sortDirection) return "none";
+    return sortDirection === "asc" ? "ascending" : "descending";
+  }
+
   return (
     <div className={cn("w-full overflow-auto rounded-lg border border-gray-200", className)}>
       <table className="w-full border-collapse text-sm">
@@ -71,17 +77,33 @@ function DataTable<T>({
             {columns.map((col) => (
               <th
                 key={col.key}
+                scope="col"
+                aria-sort={getAriaSortValue(col)}
                 className={cn(
                   "px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500",
                   col.sortable && "cursor-pointer select-none hover:text-gray-700",
                   col.className,
                 )}
                 onClick={col.sortable ? () => handleSort(col.key) : undefined}
+                onKeyDown={
+                  col.sortable
+                    ? (e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          handleSort(col.key);
+                        }
+                      }
+                    : undefined
+                }
+                tabIndex={col.sortable ? 0 : undefined}
+                role={col.sortable ? "columnheader button" : "columnheader"}
               >
                 <span className="inline-flex items-center gap-1">
                   {col.header}
                   {col.sortable && sortKey === col.key && sortDirection && (
-                    <span className="text-brand-600">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                    <span className="text-brand-600" aria-hidden="true">
+                      {sortDirection === "asc" ? "\u2191" : "\u2193"}
+                    </span>
                   )}
                 </span>
               </th>
@@ -109,8 +131,24 @@ function DataTable<T>({
             sortedData.map((item) => (
               <tr
                 key={keyExtractor(item)}
-                className={cn("transition-colors hover:bg-gray-50", onRowClick && "cursor-pointer")}
+                className={cn(
+                  "transition-colors hover:bg-gray-50",
+                  onRowClick && "cursor-pointer focus-within:bg-gray-50",
+                )}
                 onClick={onRowClick ? () => onRowClick(item) : undefined}
+                onKeyDown={
+                  onRowClick
+                    ? (e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          onRowClick(item);
+                        }
+                      }
+                    : undefined
+                }
+                tabIndex={onRowClick ? 0 : undefined}
+                role={onRowClick ? "row" : undefined}
+                aria-label={onRowClick ? "Click to view details" : undefined}
               >
                 {columns.map((col) => (
                   <td key={col.key} className={cn("px-4 py-3", col.className)}>

@@ -62,14 +62,23 @@ function NavGroupSection({ group, collapsed }: { group: NavGroup; collapsed: boo
       {!collapsed && (
         <button
           onClick={() => setExpanded(!expanded)}
+          aria-expanded={expanded}
+          aria-controls={`nav-group-${group.label.toLowerCase()}`}
           className="flex w-full items-center justify-between px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-gray-400 hover:text-gray-600"
         >
           {group.label}
-          <ChevronDown className={cn("h-3 w-3 transition-transform", !expanded && "-rotate-90")} />
+          <ChevronDown
+            className={cn("h-3 w-3 transition-transform", !expanded && "-rotate-90")}
+            aria-hidden="true"
+          />
         </button>
       )}
       {(expanded || collapsed) && (
-        <nav className="space-y-0.5">
+        <nav
+          id={`nav-group-${group.label.toLowerCase()}`}
+          aria-label={`${group.label} navigation`}
+          className="space-y-0.5"
+        >
           {group.items.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
             const Icon = item.icon;
@@ -77,6 +86,7 @@ function NavGroupSection({ group, collapsed }: { group: NavGroup; collapsed: boo
               <Link
                 key={item.href}
                 href={item.href}
+                aria-current={isActive ? "page" : undefined}
                 className={cn(
                   "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                   isActive
@@ -86,7 +96,7 @@ function NavGroupSection({ group, collapsed }: { group: NavGroup; collapsed: boo
                 )}
                 title={collapsed ? item.label : undefined}
               >
-                <Icon className="h-5 w-5 shrink-0" />
+                <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
                 {!collapsed && <span>{item.label}</span>}
               </Link>
             );
@@ -102,6 +112,7 @@ export function Sidebar() {
 
   return (
     <aside
+      aria-label="Main navigation"
       className={cn(
         "flex h-full flex-col border-r border-gray-200 bg-white transition-all duration-200",
         sidebarCollapsed ? "w-16" : "w-60",
@@ -114,8 +125,15 @@ export function Sidebar() {
           sidebarCollapsed && "justify-center px-2",
         )}
       >
-        <Link href="/dashboard" className="flex items-center gap-2">
-          <div className="bg-brand-600 flex h-8 w-8 items-center justify-center rounded-lg text-sm font-bold text-white">
+        <Link
+          href="/dashboard"
+          className="flex items-center gap-2"
+          aria-label="Relay — Go to dashboard"
+        >
+          <div
+            className="bg-brand-600 flex h-8 w-8 items-center justify-center rounded-lg text-sm font-bold text-white"
+            aria-hidden="true"
+          >
             R
           </div>
           {!sidebarCollapsed && <span className="text-lg font-semibold text-gray-900">Relay</span>}
@@ -138,6 +156,7 @@ export function Sidebar() {
         >
           <ChevronLeft
             className={cn("h-5 w-5 transition-transform", sidebarCollapsed && "rotate-180")}
+            aria-hidden="true"
           />
         </button>
       </div>
