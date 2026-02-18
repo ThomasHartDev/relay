@@ -55,6 +55,39 @@ export const createWorkflowEdgeSchema = z.object({
   label: z.string().max(100).optional(),
 });
 
+export const updateWorkflowSchema = z.object({
+  name: z.string().min(1, "Workflow name is required").max(200).optional(),
+  description: z.string().max(1000).optional(),
+  status: workflowStatusSchema.optional(),
+  triggerType: workflowTriggerTypeSchema.optional(),
+});
+
+export const workflowFilterSchema = z.object({
+  search: z.string().optional(),
+  status: workflowStatusSchema.optional(),
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(100).default(25),
+  sortBy: z.enum(["name", "createdAt", "updatedAt"]).default("updatedAt"),
+  sortOrder: z.enum(["asc", "desc"]).default("desc"),
+});
+
+export const WORKFLOW_STATUS_LABELS: Record<WorkflowStatus, string> = {
+  DRAFT: "Draft",
+  ACTIVE: "Active",
+  PAUSED: "Paused",
+  ARCHIVED: "Archived",
+};
+
+export const WORKFLOW_TRIGGER_LABELS: Record<WorkflowTriggerType, string> = {
+  CONTACT_CREATED: "Contact Created",
+  DEAL_STAGE_CHANGED: "Deal Stage Changed",
+  TAG_ADDED: "Tag Added",
+  FORM_SUBMITTED: "Form Submitted",
+  MANUAL: "Manual",
+};
+
 export type CreateWorkflowInput = z.infer<typeof createWorkflowSchema>;
 export type CreateWorkflowNodeInput = z.infer<typeof createWorkflowNodeSchema>;
 export type CreateWorkflowEdgeInput = z.infer<typeof createWorkflowEdgeSchema>;
+export type UpdateWorkflowInput = z.infer<typeof updateWorkflowSchema>;
+export type WorkflowFilterInput = z.infer<typeof workflowFilterSchema>;
