@@ -12,6 +12,8 @@ import {
   Pause,
   Archive,
   Zap,
+  Copy,
+  LayoutTemplate,
 } from "lucide-react";
 import {
   WORKFLOW_STATUSES,
@@ -34,6 +36,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { WorkflowStatusBadge } from "@/components/workflows/workflow-status-badge";
 import { WorkflowDialog } from "@/components/workflows/workflow-dialog";
+import { TemplateGallery } from "@/components/workflows/template-gallery";
 import { WORKFLOW_STATUS_COLORS } from "@/lib/design-tokens";
 import { useDebounce } from "@/lib/hooks/use-debounce";
 
@@ -71,6 +74,7 @@ export default function WorkflowsPage() {
   const [page, setPage] = useState(1);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingWorkflow, setEditingWorkflow] = useState<WorkflowItem | null>(null);
+  const [showTemplates, setShowTemplates] = useState(false);
 
   const debouncedSearch = useDebounce(search, 300);
 
@@ -118,6 +122,16 @@ export default function WorkflowsPage() {
     if (res.ok) void fetchWorkflows();
   }
 
+  async function handleDuplicate(id: string) {
+    const res = await fetch(`/api/workflows/${id}/duplicate`, {
+      method: "POST",
+    });
+    if (res.ok) {
+      const json = await res.json();
+      router.push(`/workflows/${(json.data as { id: string }).id}`);
+    }
+  }
+
   function handleEdit(wf: WorkflowItem) {
     setEditingWorkflow(wf);
     setDialogOpen(true);
@@ -141,11 +155,25 @@ export default function WorkflowsPage() {
             </p>
           )}
         </div>
-        <Button onClick={handleCreate}>
-          <Plus className="mr-2 h-4 w-4" />
-          New Workflow
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => setShowTemplates(!showTemplates)}>
+            <LayoutTemplate className="mr-2 h-4 w-4" />
+            Templates
+          </Button>
+          <Button onClick={handleCreate}>
+            <Plus className="mr-2 h-4 w-4" />
+            New Workflow
+          </Button>
+        </div>
       </div>
+
+      {showTemplates && (
+        <Card>
+          <CardContent className="p-5">
+            <TemplateGallery onClose={() => setShowTemplates(false)} />
+          </CardContent>
+        </Card>
+      )}
 
       {isEmpty ? (
         <EmptyState
@@ -273,6 +301,10 @@ export default function WorkflowsPage() {
                         <DropdownMenuItem onClick={() => handleEdit(wf)}>
                           <Pencil className="mr-2 h-3.5 w-3.5" />
                           Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleDuplicate(wf.id)}>
+                          <Copy className="mr-2 h-3.5 w-3.5" />
+                          Duplicate
                         </DropdownMenuItem>
                         {wf.status === "DRAFT" && (
                           <DropdownMenuItem onClick={() => handleStatusChange(wf.id, "ACTIVE")}>
