@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Users, Download, Upload } from "lucide-react";
 import { type ContactStatus } from "@relay/shared";
@@ -11,8 +11,12 @@ import { Button } from "@/components/ui/button";
 import { ContactStatusBadge } from "@/components/contacts/contact-status-badge";
 import { ContactsFilters } from "@/components/contacts/contacts-filters";
 import { QuickAddContact } from "@/components/contacts/quick-add-contact";
-import { ImportWizard } from "@/components/contacts/import-wizard";
 import { useDebounce } from "@/lib/hooks/use-debounce";
+
+// Lazy load import wizard — includes CSV parsing library
+const ImportWizard = lazy(() =>
+  import("@/components/contacts/import-wizard").then((m) => ({ default: m.ImportWizard })),
+);
 
 interface Contact {
   id: string;
@@ -245,11 +249,15 @@ export default function ContactsPage() {
           )}
         </>
       )}
-      <ImportWizard
-        open={importOpen}
-        onOpenChange={setImportOpen}
-        onComplete={() => void fetchContacts()}
-      />
+      {importOpen && (
+        <Suspense fallback={null}>
+          <ImportWizard
+            open={importOpen}
+            onOpenChange={setImportOpen}
+            onComplete={() => void fetchContacts()}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }
