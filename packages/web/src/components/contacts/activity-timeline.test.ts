@@ -46,6 +46,8 @@ describe("groupByDate", () => {
   });
 
   it("preserves chronological order within groups", () => {
+    // Pin to noon so "1 hour ago" is still today in any timezone
+    vi.setSystemTime(new Date("2025-06-15T12:00:00"));
     const now = new Date();
     const earlier = new Date(now.getTime() - 3600000).toISOString();
     const later = now.toISOString();
@@ -58,5 +60,6 @@ describe("groupByDate", () => {
     expect(todayGroup).toBeDefined();
     expect(todayGroup![0]!.id).toBe("1");
     expect(todayGroup![1]!.id).toBe("2");
+    vi.useRealTimers();
   });
 });
