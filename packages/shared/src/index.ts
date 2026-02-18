@@ -1,3 +1,4 @@
+export * from "./schemas/auth";
 export * from "./schemas/env";
 export * from "./schemas/contact";
 export * from "./schemas/company";
