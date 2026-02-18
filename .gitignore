@@ -1,0 +1,39 @@
+# dependencies
+node_modules
+.pnpm-store
+
+# build outputs
+.next
+dist
+.turbo
+
+# env files
+.env
+.env.local
+.env.*.local
+
+# testing
+coverage
+playwright-report
+test-results
+
+# editors
+.vscode
+.idea
+*.swp
+*.swo
+
+# os
+.DS_Store
+Thumbs.db
+
+# debug
+npm-debug.log*
+pnpm-debug.log*
+
+# prisma
+packages/db/prisma/*.db
+
+# project instructions
+CLAUDE.md
+.claude/
