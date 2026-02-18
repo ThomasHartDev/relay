@@ -38,5 +38,28 @@ export const createSequenceStepSchema = z.object({
   conditionType: conditionTypeSchema.optional(),
 });
 
+export const updateSequenceSchema = z.object({
+  name: z.string().min(1, "Sequence name is required").max(200).optional(),
+  status: sequenceStatusSchema.optional(),
+});
+
+export const sequenceFilterSchema = z.object({
+  search: z.string().optional(),
+  status: sequenceStatusSchema.optional(),
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(100).default(25),
+  sortBy: z.enum(["name", "createdAt", "updatedAt"]).default("updatedAt"),
+  sortOrder: z.enum(["asc", "desc"]).default("desc"),
+});
+
+export const SEQUENCE_STATUS_LABELS: Record<SequenceStatus, string> = {
+  DRAFT: "Draft",
+  ACTIVE: "Active",
+  PAUSED: "Paused",
+  ARCHIVED: "Archived",
+};
+
 export type CreateSequenceInput = z.infer<typeof createSequenceSchema>;
 export type CreateSequenceStepInput = z.infer<typeof createSequenceStepSchema>;
+export type UpdateSequenceInput = z.infer<typeof updateSequenceSchema>;
+export type SequenceFilterInput = z.infer<typeof sequenceFilterSchema>;
