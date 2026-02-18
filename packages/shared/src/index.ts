@@ -9,3 +9,4 @@ export * from "./schemas/tag";
 export * from "./schemas/sequence";
 export * from "./schemas/workflow";
 export * from "./constants/deal-stages";
+export * from "./utils/sequence-analytics";
