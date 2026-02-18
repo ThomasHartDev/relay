@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { SequenceStatusBadge } from "@/components/sequences/sequence-status-badge";
 import { StepCard } from "@/components/sequences/step-card";
 import { StepEditor } from "@/components/sequences/step-editor";
+import { EnrollmentTable } from "@/components/sequences/enrollment-table";
 import { useSequenceBuilderStore, type BuilderStep } from "@/lib/stores/sequence-builder-store";
 import type { SequenceStatus, StepType } from "@relay/shared";
 
@@ -258,6 +259,9 @@ export default function SequenceDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Enrollments section */}
+      <EnrollmentTable sequenceId={sequence.id} />
     </div>
   );
 }

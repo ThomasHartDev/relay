@@ -37,6 +37,15 @@ export const SEQUENCE_STATUS_COLORS = {
   ARCHIVED: { bg: "#F5F3FF", text: "#8B5CF6", border: "#DDD6FE" },
 } as const;
 
+export const ENROLLMENT_STATUS_COLORS = {
+  ACTIVE: { bg: "#F0FDF4", text: "#22C55E", border: "#BBF7D0" },
+  PAUSED: { bg: "#FFFBEB", text: "#F59E0B", border: "#FDE68A" },
+  COMPLETED: { bg: "#EFF6FF", text: "#3B82F6", border: "#BFDBFE" },
+  BOUNCED: { bg: "#FEF2F2", text: "#EF4444", border: "#FECACA" },
+  REPLIED: { bg: "#F5F3FF", text: "#8B5CF6", border: "#DDD6FE" },
+  UNSUBSCRIBED: { bg: "#F9FAFB", text: "#6B7280", border: "#E5E7EB" },
+} as const;
+
 export const HIGHLIGHT_COLORS = {
   overdue: "#FEE2E2",
   hotDeal: "#FFEDD5",
