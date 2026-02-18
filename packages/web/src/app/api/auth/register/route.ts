@@ -31,7 +31,8 @@ export async function POST(request: Request) {
     await setAuthCookies({ userId: user.id, email: user.email });
 
     return NextResponse.json({ user }, { status: 201 });
-  } catch {
+  } catch (error) {
+    console.error("Register error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

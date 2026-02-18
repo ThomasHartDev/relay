@@ -1,4 +1,4 @@
-import { PrismaClient } from "./generated/client";
+import { PrismaClient } from "@prisma/client";
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
@@ -15,4 +15,4 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 export { PrismaClient };
-export type * from "./generated/client";
+export type * from "@prisma/client";
