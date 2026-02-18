@@ -7,12 +7,416 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ─── Enums ──────────────────────────────────────────────
+
+enum ContactStatus {
+  LEAD
+  PROSPECT
+  CUSTOMER
+  CHURNED
+  ARCHIVED
+}
+
+enum DealStage {
+  PROSPECT
+  QUALIFIED
+  PROPOSAL
+  NEGOTIATION
+  WON
+  LOST
+}
+
+enum CompanySize {
+  STARTUP
+  SMALL
+  MEDIUM
+  ENTERPRISE
+}
+
+enum ActivityType {
+  CALL
+  EMAIL
+  MEETING
+  TASK
+  NOTE
+}
+
+enum SequenceStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  ARCHIVED
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+  BOUNCED
+  REPLIED
+  UNSUBSCRIBED
+}
+
+enum StepType {
+  EMAIL
+  DELAY
+  CONDITION
+}
+
+enum ConditionType {
+  OPENED
+  CLICKED
+  REPLIED
+}
+
+enum WorkflowStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  ARCHIVED
+}
+
+enum WorkflowNodeType {
+  TRIGGER
+  CONDITION
+  ACTION
+  DELAY
+}
+
+enum WorkflowTriggerType {
+  CONTACT_CREATED
+  DEAL_STAGE_CHANGED
+  TAG_ADDED
+  FORM_SUBMITTED
+  MANUAL
+}
+
+enum WorkflowActionType {
+  SEND_EMAIL
+  CREATE_ACTIVITY
+  UPDATE_FIELD
+  ADD_TAG
+  REMOVE_TAG
+  ASSIGN_OWNER
+  ENROLL_SEQUENCE
+}
+
+enum WorkflowExecutionStatus {
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+// ─── Core CRM Models ───────────────────────────────────
+
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  avatarUrl    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  ownedContacts Contact[] @relation("ContactOwner")
+  ownedDeals    Deal[]    @relation("DealOwner")
+  activities    Activity[]
+  notes         Note[]
+
+  @@map("users")
+}
+
+model Contact {
+  id        String        @id @default(cuid())
+  email     String        @unique
+  firstName String
+  lastName  String
+  phone     String?
+  title     String?
+  status    ContactStatus @default(LEAD)
+  avatarUrl String?
+
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  ownerId String?
+  owner   User?   @relation("ContactOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+
+  deals      Deal[]
+  activities Activity[]
+  notes      Note[]
+  tags       TagOnContact[]
+  enrollments SequenceEnrollment[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@map("users")
+  @@index([companyId])
+  @@index([ownerId])
+  @@index([status])
+  @@map("contacts")
+}
+
+model Company {
+  id       String      @id @default(cuid())
+  name     String
+  domain   String?     @unique
+  industry String?
+  size     CompanySize?
+  logoUrl  String?
+
+  contacts Contact[]
+  deals    Deal[]
+  notes    Note[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("companies")
+}
+
+model Deal {
+  id       String    @id @default(cuid())
+  title    String
+  value    Float     @default(0)
+  stage    DealStage @default(PROSPECT)
+  priority Int       @default(0)
+
+  closeDate  DateTime?
+  lostReason String?
+
+  contactId String?
+  contact   Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  ownerId String?
+  owner   User?   @relation("DealOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+
+  activities Activity[]
+  notes      Note[]
+  tags       TagOnDeal[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([stage])
+  @@index([contactId])
+  @@index([companyId])
+  @@index([ownerId])
+  @@map("deals")
+}
+
+model Activity {
+  id          String       @id @default(cuid())
+  type        ActivityType
+  title       String
+  description String?
+  dueDate     DateTime?
+  completedAt DateTime?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  contactId String?
+  contact   Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+
+  dealId String?
+  deal   Deal?   @relation(fields: [dealId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([contactId])
+  @@index([dealId])
+  @@index([dueDate])
+  @@map("activities")
+}
+
+model Note {
+  id      String  @id @default(cuid())
+  content String
+  pinned  Boolean @default(false)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  contactId String?
+  contact   Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  dealId String?
+  deal   Deal?   @relation(fields: [dealId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([contactId])
+  @@index([companyId])
+  @@index([dealId])
+  @@map("notes")
+}
+
+// ─── Tags ──────────────────────────────────────────────
+
+model Tag {
+  id    String @id @default(cuid())
+  name  String @unique
+  color String @default("#6B7280")
+
+  contacts TagOnContact[]
+  deals    TagOnDeal[]
+
+  createdAt DateTime @default(now())
+
+  @@map("tags")
+}
+
+model TagOnContact {
+  contactId String
+  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  tagId String
+  tag   Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([contactId, tagId])
+  @@map("tags_on_contacts")
+}
+
+model TagOnDeal {
+  dealId String
+  deal   Deal   @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  tagId String
+  tag   Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([dealId, tagId])
+  @@map("tags_on_deals")
+}
+
+// ─── Sequences ─────────────────────────────────────────
+
+model Sequence {
+  id     String         @id @default(cuid())
+  name   String
+  status SequenceStatus @default(DRAFT)
+
+  steps       SequenceStep[]
+  enrollments SequenceEnrollment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("sequences")
+}
+
+model SequenceStep {
+  id       String   @id @default(cuid())
+  type     StepType
+  order    Int
+  delayMs  Int?
+  subject  String?
+  body     String?
+  conditionType ConditionType?
+
+  sequenceId String
+  sequence   Sequence @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
+
+  @@index([sequenceId])
+  @@map("sequence_steps")
+}
+
+model SequenceEnrollment {
+  id            String           @id @default(cuid())
+  status        EnrollmentStatus @default(ACTIVE)
+  currentStepId String?
+  enrolledAt    DateTime         @default(now())
+  completedAt   DateTime?
+  nextStepAt    DateTime?
+
+  contactId String
+  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  sequenceId String
+  sequence   Sequence @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
+
+  @@index([contactId])
+  @@index([sequenceId])
+  @@index([status])
+  @@map("sequence_enrollments")
+}
+
+// ─── Workflows ─────────────────────────────────────────
+
+model Workflow {
+  id          String         @id @default(cuid())
+  name        String
+  description String?
+  status      WorkflowStatus @default(DRAFT)
+  triggerType WorkflowTriggerType?
+
+  nodes      WorkflowNode[]
+  edges      WorkflowEdge[]
+  executions WorkflowExecution[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("workflows")
+}
+
+model WorkflowNode {
+  id       String           @id @default(cuid())
+  type     WorkflowNodeType
+  label    String
+  config   Json             @default("{}")
+  positionX Float           @default(0)
+  positionY Float           @default(0)
+
+  workflowId String
+  workflow   Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  sourceEdges WorkflowEdge[] @relation("SourceNode")
+  targetEdges WorkflowEdge[] @relation("TargetNode")
+
+  @@index([workflowId])
+  @@map("workflow_nodes")
+}
+
+model WorkflowEdge {
+  id    String  @id @default(cuid())
+  label String?
+
+  sourceNodeId String
+  sourceNode   WorkflowNode @relation("SourceNode", fields: [sourceNodeId], references: [id], onDelete: Cascade)
+
+  targetNodeId String
+  targetNode   WorkflowNode @relation("TargetNode", fields: [targetNodeId], references: [id], onDelete: Cascade)
+
+  workflowId String
+  workflow   Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@index([workflowId])
+  @@map("workflow_edges")
+}
+
+model WorkflowExecution {
+  id        String                   @id @default(cuid())
+  status    WorkflowExecutionStatus  @default(RUNNING)
+  triggerData Json                   @default("{}")
+  log       Json                     @default("[]")
+  startedAt DateTime                 @default(now())
+  completedAt DateTime?
+
+  workflowId String
+  workflow   Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@index([workflowId])
+  @@index([status])
+  @@map("workflow_executions")
 }
