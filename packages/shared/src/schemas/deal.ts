@@ -27,5 +27,17 @@ export const updateDealSchema = createDealSchema.partial().extend({
   lostReason: z.string().max(500).optional(),
 });
 
+export const dealFilterSchema = z.object({
+  search: z.string().optional(),
+  stage: dealStageSchema.optional(),
+  ownerId: z.string().cuid().optional(),
+  companyId: z.string().cuid().optional(),
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(200).default(100),
+  sortBy: z.enum(["title", "value", "createdAt", "updatedAt"]).default("createdAt"),
+  sortOrder: z.enum(["asc", "desc"]).default("desc"),
+});
+
 export type CreateDealInput = z.infer<typeof createDealSchema>;
 export type UpdateDealInput = z.infer<typeof updateDealSchema>;
+export type DealFilter = z.infer<typeof dealFilterSchema>;
