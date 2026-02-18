@@ -1,7 +1,15 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { Upload, FileText, AlertCircle, CheckCircle2, ArrowRight, ArrowLeft, X } from "lucide-react";
+import {
+  Upload,
+  FileText,
+  AlertCircle,
+  CheckCircle2,
+  ArrowRight,
+  ArrowLeft,
+  X,
+} from "lucide-react";
 import {
   parseCsv,
   autoMapHeaders,
@@ -157,14 +165,16 @@ export function ImportWizard({
                 className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium ${
                   step === s || (step === "importing" && s === "preview")
                     ? "bg-gray-900 text-white"
-                    : step === "complete" || (s === "upload" && step !== "upload") || (s === "mapping" && (step === "preview" || step === "importing"))
+                    : step === "complete" ||
+                        (s === "upload" && step !== "upload") ||
+                        (s === "mapping" && (step === "preview" || step === "importing"))
                       ? "bg-emerald-100 text-emerald-700"
                       : "bg-gray-100 text-gray-400"
                 }`}
               >
                 {i + 1}
               </div>
-              <span className="text-xs text-gray-500 capitalize">{s}</span>
+              <span className="text-xs capitalize text-gray-500">{s}</span>
             </div>
           ))}
         </div>
@@ -232,10 +242,7 @@ export function ImportWizard({
                       <option
                         key={col}
                         value={col}
-                        disabled={
-                          mapping[header] !== col &&
-                          Object.values(mapping).includes(col)
-                        }
+                        disabled={mapping[header] !== col && Object.values(mapping).includes(col)}
                       >
                         {col}
                       </option>
@@ -278,7 +285,9 @@ export function ImportWizard({
                 <p className="text-xs text-red-600">Errors</p>
               </div>
               <div className="rounded-lg bg-amber-50 p-3 text-center">
-                <p className="text-2xl font-bold text-amber-700">{validation.duplicateEmails.length}</p>
+                <p className="text-2xl font-bold text-amber-700">
+                  {validation.duplicateEmails.length}
+                </p>
                 <p className="text-xs text-amber-600">Duplicates in file</p>
               </div>
             </div>

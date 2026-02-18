@@ -1,10 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  parseCsv,
-  generateCsv,
-  autoMapHeaders,
-  validateImportRows,
-} from "./csv";
+import { parseCsv, generateCsv, autoMapHeaders, validateImportRows } from "./csv";
 
 describe("parseCsv", () => {
   it("parses a simple CSV", () => {
@@ -128,7 +123,13 @@ describe("validateImportRows", () => {
 
   it("validates valid rows", () => {
     const rows = [
-      { "First Name": "Alice", "Last Name": "Smith", Email: "alice@test.com", Phone: "555-1234", Status: "" },
+      {
+        "First Name": "Alice",
+        "Last Name": "Smith",
+        Email: "alice@test.com",
+        Phone: "555-1234",
+        Status: "",
+      },
     ];
     const result = validateImportRows(rows, defaultMapping);
     expect(result.valid).toHaveLength(1);
@@ -138,7 +139,9 @@ describe("validateImportRows", () => {
   });
 
   it("rejects rows missing required fields", () => {
-    const rows = [{ "First Name": "", "Last Name": "Smith", Email: "alice@test.com", Phone: "", Status: "" }];
+    const rows = [
+      { "First Name": "", "Last Name": "Smith", Email: "alice@test.com", Phone: "", Status: "" },
+    ];
     const result = validateImportRows(rows, defaultMapping);
     expect(result.valid).toHaveLength(0);
     expect(result.errors).toHaveLength(1);
@@ -146,7 +149,9 @@ describe("validateImportRows", () => {
   });
 
   it("rejects invalid email formats", () => {
-    const rows = [{ "First Name": "Alice", "Last Name": "Smith", Email: "not-an-email", Phone: "", Status: "" }];
+    const rows = [
+      { "First Name": "Alice", "Last Name": "Smith", Email: "not-an-email", Phone: "", Status: "" },
+    ];
     const result = validateImportRows(rows, defaultMapping);
     expect(result.errors).toHaveLength(1);
     expect(result.errors[0]!.field).toBe("email");
@@ -154,8 +159,20 @@ describe("validateImportRows", () => {
 
   it("detects duplicate emails within the import", () => {
     const rows = [
-      { "First Name": "Alice", "Last Name": "Smith", Email: "alice@test.com", Phone: "", Status: "" },
-      { "First Name": "Alice2", "Last Name": "Smith2", Email: "alice@test.com", Phone: "", Status: "" },
+      {
+        "First Name": "Alice",
+        "Last Name": "Smith",
+        Email: "alice@test.com",
+        Phone: "",
+        Status: "",
+      },
+      {
+        "First Name": "Alice2",
+        "Last Name": "Smith2",
+        Email: "alice@test.com",
+        Phone: "",
+        Status: "",
+      },
     ];
     const result = validateImportRows(rows, defaultMapping);
     expect(result.valid).toHaveLength(1);
@@ -164,7 +181,13 @@ describe("validateImportRows", () => {
 
   it("validates status field values", () => {
     const rows = [
-      { "First Name": "Alice", "Last Name": "Smith", Email: "alice@test.com", Phone: "", Status: "INVALID" },
+      {
+        "First Name": "Alice",
+        "Last Name": "Smith",
+        Email: "alice@test.com",
+        Phone: "",
+        Status: "INVALID",
+      },
     ];
     const result = validateImportRows(rows, defaultMapping);
     expect(result.errors).toHaveLength(1);
@@ -173,7 +196,13 @@ describe("validateImportRows", () => {
 
   it("accepts valid status values case-insensitively", () => {
     const rows = [
-      { "First Name": "Alice", "Last Name": "Smith", Email: "alice@test.com", Phone: "", Status: "lead" },
+      {
+        "First Name": "Alice",
+        "Last Name": "Smith",
+        Email: "alice@test.com",
+        Phone: "",
+        Status: "lead",
+      },
     ];
     const result = validateImportRows(rows, defaultMapping);
     expect(result.valid).toHaveLength(1);
@@ -188,7 +217,7 @@ describe("validateImportRows", () => {
         Email: "alice@test.com",
         Phone: "",
         Status: "",
-        "Random": "data",
+        Random: "data",
       },
     ];
     const mapping = { ...defaultMapping, Random: null };

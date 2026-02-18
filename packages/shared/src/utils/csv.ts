@@ -102,7 +102,9 @@ export function generateCsv(
   columns: string[],
 ): string {
   const header = columns.map(escapeCsvField).join(",");
-  const rows = data.map((row) => columns.map((col) => escapeCsvField(String(row[col] ?? ""))).join(","));
+  const rows = data.map((row) =>
+    columns.map((col) => escapeCsvField(String(row[col] ?? ""))).join(","),
+  );
   return [header, ...rows].join("\n");
 }
 
@@ -129,11 +131,11 @@ export type ContactCsvColumn = (typeof CONTACT_CSV_COLUMNS)[number];
 /** Common header aliases for auto-mapping */
 export const HEADER_ALIASES: Record<string, ContactCsvColumn> = {
   "first name": "firstName",
-  "first_name": "firstName",
+  first_name: "firstName",
   firstname: "firstName",
   first: "firstName",
   "last name": "lastName",
-  "last_name": "lastName",
+  last_name: "lastName",
   lastname: "lastName",
   last: "lastName",
   "email address": "email",

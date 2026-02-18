@@ -45,12 +45,13 @@ export async function POST(request: NextRequest) {
 
   // Resolve company names to IDs
   const companyNames = [...new Set(contacts.map((c) => c.company).filter(Boolean))] as string[];
-  const companies = companyNames.length > 0
-    ? await prisma.company.findMany({
-        where: { name: { in: companyNames, mode: "insensitive" } },
-        select: { id: true, name: true },
-      })
-    : [];
+  const companies =
+    companyNames.length > 0
+      ? await prisma.company.findMany({
+          where: { name: { in: companyNames, mode: "insensitive" } },
+          select: { id: true, name: true },
+        })
+      : [];
   const companyMap = new Map(companies.map((c) => [c.name.toLowerCase(), c.id]));
 
   let imported = 0;
@@ -79,7 +80,7 @@ export async function POST(request: NextRequest) {
           title: contact.title || null,
           status: (contact.status as ContactStatus) || "LEAD",
           companyId: contact.company
-            ? companyMap.get(contact.company.toLowerCase()) ?? null
+            ? (companyMap.get(contact.company.toLowerCase()) ?? null)
             : null,
           ownerId: user.id,
         },
