@@ -6,6 +6,7 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { CommandPalette } from "@/components/command-palette/command-palette";
+import { SkipLink } from "@/components/ui/skip-link";
 import { useAuth } from "@/lib/auth-context";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -20,8 +21,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center">
+      <div
+        className="flex h-screen items-center justify-center"
+        role="status"
+        aria-label="Loading application"
+      >
         <div className="border-brand-600 h-8 w-8 animate-spin rounded-full border-2 border-t-transparent" />
+        <span className="sr-only">Loading...</span>
       </div>
     );
   }
@@ -30,6 +36,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
+      <SkipLink />
+
       {/* Desktop sidebar */}
       <div className="hidden lg:flex">
         <Sidebar />
@@ -41,7 +49,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Main content area */}
       <div className="flex flex-1 flex-col overflow-hidden">
         <Topbar />
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        <main id="main-content" className="flex-1 overflow-y-auto p-6" tabIndex={-1}>
+          {children}
+        </main>
       </div>
 
       {/* Command palette overlay */}
