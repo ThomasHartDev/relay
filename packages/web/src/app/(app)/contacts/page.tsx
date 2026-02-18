@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Users } from "lucide-react";
+import { Users, Download, Upload } from "lucide-react";
 import { type ContactStatus } from "@relay/shared";
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { ContactStatusBadge } from "@/components/contacts/contact-status-badge";
 import { ContactsFilters } from "@/components/contacts/contacts-filters";
 import { QuickAddContact } from "@/components/contacts/quick-add-contact";
+import { ImportWizard } from "@/components/contacts/import-wizard";
 import { useDebounce } from "@/lib/hooks/use-debounce";
 
 interface Contact {
@@ -46,6 +47,9 @@ export default function ContactsPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<ContactStatus | null>(null);
   const [page, setPage] = useState(1);
+
+  const [importOpen, setImportOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   const debouncedSearch = useDebounce(search, 300);
 
@@ -138,6 +142,24 @@ export default function ContactsPage() {
     },
   ];
 
+  async function handleExport() {
+    setExporting(true);
+    try {
+      const res = await fetch("/api/contacts/export");
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `contacts-${new Date().toISOString().split("T")[0]}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    } finally {
+      setExporting(false);
+    }
+  }
+
   const isEmpty = !isLoading && contacts.length === 0 && !debouncedSearch && !statusFilter;
 
   return (
@@ -151,7 +173,22 @@ export default function ContactsPage() {
             </p>
           )}
         </div>
-        <QuickAddContact onCreated={fetchContacts} />
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => void handleExport()}
+            disabled={exporting || meta.total === 0}
+          >
+            <Download className="mr-1.5 h-3.5 w-3.5" />
+            Export
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
+            <Upload className="mr-1.5 h-3.5 w-3.5" />
+            Import
+          </Button>
+          <QuickAddContact onCreated={fetchContacts} />
+        </div>
       </div>
 
       {isEmpty ? (
@@ -208,6 +245,11 @@ export default function ContactsPage() {
           )}
         </>
       )}
+      <ImportWizard
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        onComplete={() => void fetchContacts()}
+      />
     </div>
   );
 }
