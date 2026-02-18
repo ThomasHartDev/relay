@@ -59,7 +59,26 @@ export const SEQUENCE_STATUS_LABELS: Record<SequenceStatus, string> = {
   ARCHIVED: "Archived",
 };
 
+export const enrollContactsSchema = z.object({
+  contactIds: z.array(z.string().cuid()).min(1, "Select at least one contact"),
+});
+
+export const updateEnrollmentSchema = z.object({
+  status: enrollmentStatusSchema,
+});
+
+export const ENROLLMENT_STATUS_LABELS: Record<EnrollmentStatus, string> = {
+  ACTIVE: "Active",
+  PAUSED: "Paused",
+  COMPLETED: "Completed",
+  BOUNCED: "Bounced",
+  REPLIED: "Replied",
+  UNSUBSCRIBED: "Unsubscribed",
+};
+
 export type CreateSequenceInput = z.infer<typeof createSequenceSchema>;
 export type CreateSequenceStepInput = z.infer<typeof createSequenceStepSchema>;
 export type UpdateSequenceInput = z.infer<typeof updateSequenceSchema>;
 export type SequenceFilterInput = z.infer<typeof sequenceFilterSchema>;
+export type EnrollContactsInput = z.infer<typeof enrollContactsSchema>;
+export type UpdateEnrollmentInput = z.infer<typeof updateEnrollmentSchema>;

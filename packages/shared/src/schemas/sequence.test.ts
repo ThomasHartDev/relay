@@ -5,9 +5,12 @@ import {
   CONDITION_TYPES,
   ENROLLMENT_STATUSES,
   SEQUENCE_STATUS_LABELS,
+  ENROLLMENT_STATUS_LABELS,
   createSequenceSchema,
   updateSequenceSchema,
   sequenceFilterSchema,
+  enrollContactsSchema,
+  updateEnrollmentSchema,
   createSequenceStepSchema,
   sequenceStatusSchema,
 } from "./sequence";
@@ -180,5 +183,59 @@ describe("sequenceStatusSchema", () => {
 
   it("rejects invalid status", () => {
     expect(sequenceStatusSchema.safeParse("RUNNING").success).toBe(false);
+  });
+});
+
+describe("ENROLLMENT_STATUS_LABELS", () => {
+  it("has a label for every enrollment status", () => {
+    for (const status of ENROLLMENT_STATUSES) {
+      expect(ENROLLMENT_STATUS_LABELS[status]).toBeDefined();
+      expect(typeof ENROLLMENT_STATUS_LABELS[status]).toBe("string");
+    }
+  });
+});
+
+describe("enrollContactsSchema", () => {
+  it("validates with one contact ID", () => {
+    const result = enrollContactsSchema.safeParse({
+      contactIds: ["clxxxxxxxxxxxxxxxxxxxxxxxxx"],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("validates with multiple contact IDs", () => {
+    const result = enrollContactsSchema.safeParse({
+      contactIds: ["clxxxxxxxxxxxxxxxxxxxxxxxxx", "clyyyyyyyyyyyyyyyyyyyyyyyy"],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects empty contactIds array", () => {
+    const result = enrollContactsSchema.safeParse({ contactIds: [] });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects missing contactIds", () => {
+    const result = enrollContactsSchema.safeParse({});
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("updateEnrollmentSchema", () => {
+  it("validates all enrollment statuses", () => {
+    for (const status of ENROLLMENT_STATUSES) {
+      const result = updateEnrollmentSchema.safeParse({ status });
+      expect(result.success).toBe(true);
+    }
+  });
+
+  it("rejects invalid status", () => {
+    const result = updateEnrollmentSchema.safeParse({ status: "RUNNING" });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects missing status", () => {
+    const result = updateEnrollmentSchema.safeParse({});
+    expect(result.success).toBe(false);
   });
 });
