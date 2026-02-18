@@ -2,13 +2,14 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Save, Undo2, Redo2 } from "lucide-react";
+import { ArrowLeft, Save, Undo2, Redo2, Zap, Play, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { WorkflowStatusBadge } from "@/components/workflows/workflow-status-badge";
 import { WorkflowCanvas } from "@/components/workflows/workflow-canvas";
 import { NodePalette } from "@/components/workflows/node-palette";
 import { NodeConfigPanel } from "@/components/workflows/node-config-panel";
+import { ExecutionHistory } from "@/components/workflows/execution-history";
 import { useWorkflowCanvasStore, type WorkflowNodeData } from "@/lib/stores/workflow-canvas-store";
 import type { WorkflowStatus, WorkflowTriggerType } from "@relay/shared";
 import type { Node, Edge } from "@xyflow/react";
@@ -68,6 +69,9 @@ export default function WorkflowDetailPage() {
   const [workflow, setWorkflow] = useState<WorkflowDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isActivating, setIsActivating] = useState(false);
+  const [isExecuting, setIsExecuting] = useState(false);
+  const [activeTab, setActiveTab] = useState<"builder" | "executions">("builder");
 
   const {
     nodes,
@@ -182,6 +186,37 @@ export default function WorkflowDetailPage() {
     }
   }
 
+  async function handleActivate() {
+    if (!workflow) return;
+    setIsActivating(true);
+    try {
+      const res = await fetch(`/api/workflows/${workflow.id}/activate`, {
+        method: "POST",
+      });
+      if (res.ok) {
+        await fetchWorkflow();
+      }
+    } finally {
+      setIsActivating(false);
+    }
+  }
+
+  async function handleExecute() {
+    if (!workflow) return;
+    setIsExecuting(true);
+    try {
+      await fetch(`/api/workflows/${workflow.id}/execute`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ triggerData: {} }),
+      });
+      await fetchWorkflow();
+      setActiveTab("executions");
+    } finally {
+      setIsExecuting(false);
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -229,6 +264,30 @@ export default function WorkflowDetailPage() {
         </div>
 
         <div className="flex items-center gap-2">
+          {workflow.status !== "ACTIVE" && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleActivate}
+              disabled={isActivating}
+              isLoading={isActivating}
+            >
+              <Zap className="mr-1.5 h-3.5 w-3.5" />
+              Activate
+            </Button>
+          )}
+          {workflow.status === "ACTIVE" && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExecute}
+              disabled={isExecuting}
+              isLoading={isExecuting}
+            >
+              <Play className="mr-1.5 h-3.5 w-3.5" />
+              Run
+            </Button>
+          )}
           <Button
             variant="outline"
             size="sm"
@@ -254,29 +313,61 @@ export default function WorkflowDetailPage() {
         </div>
       </div>
 
-      {/* Canvas area */}
-      <div className="flex min-h-0 flex-1 gap-3">
-        {/* Left: Node palette */}
-        <div className="w-52 shrink-0 overflow-y-auto rounded-lg border border-gray-200 bg-white p-3">
-          <NodePalette />
-        </div>
-
-        {/* Center: Canvas */}
-        <div className="min-w-0 flex-1 overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
-          <WorkflowCanvas />
-        </div>
-
-        {/* Right: Config panel */}
-        <div className="w-64 shrink-0 overflow-y-auto rounded-lg border border-gray-200 bg-white p-4">
-          {selectedNode ? (
-            <NodeConfigPanel node={selectedNode} />
-          ) : (
-            <div className="flex h-full items-center justify-center">
-              <p className="text-center text-sm text-gray-400">Select a node to configure it</p>
-            </div>
-          )}
-        </div>
+      {/* Tab bar */}
+      <div className="flex shrink-0 gap-1 border-b border-gray-200">
+        <button
+          className={`flex items-center gap-1.5 border-b-2 px-3 py-1.5 text-sm font-medium transition-colors ${
+            activeTab === "builder"
+              ? "border-blue-600 text-blue-600"
+              : "border-transparent text-gray-500 hover:text-gray-700"
+          }`}
+          onClick={() => setActiveTab("builder")}
+        >
+          <Save className="h-3.5 w-3.5" />
+          Builder
+        </button>
+        <button
+          className={`flex items-center gap-1.5 border-b-2 px-3 py-1.5 text-sm font-medium transition-colors ${
+            activeTab === "executions"
+              ? "border-blue-600 text-blue-600"
+              : "border-transparent text-gray-500 hover:text-gray-700"
+          }`}
+          onClick={() => setActiveTab("executions")}
+        >
+          <History className="h-3.5 w-3.5" />
+          Executions
+        </button>
       </div>
+
+      {/* Tab content */}
+      {activeTab === "builder" ? (
+        <div className="flex min-h-0 flex-1 gap-3">
+          {/* Left: Node palette */}
+          <div className="w-52 shrink-0 overflow-y-auto rounded-lg border border-gray-200 bg-white p-3">
+            <NodePalette />
+          </div>
+
+          {/* Center: Canvas */}
+          <div className="min-w-0 flex-1 overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+            <WorkflowCanvas />
+          </div>
+
+          {/* Right: Config panel */}
+          <div className="w-64 shrink-0 overflow-y-auto rounded-lg border border-gray-200 bg-white p-4">
+            {selectedNode ? (
+              <NodeConfigPanel node={selectedNode} />
+            ) : (
+              <div className="flex h-full items-center justify-center">
+                <p className="text-center text-sm text-gray-400">Select a node to configure it</p>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="min-h-0 flex-1 overflow-y-auto rounded-lg border border-gray-200 bg-white p-4">
+          <ExecutionHistory workflowId={workflow.id} />
+        </div>
+      )}
     </div>
   );
 }
