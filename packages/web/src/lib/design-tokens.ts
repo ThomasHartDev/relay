@@ -23,6 +23,13 @@ export const ACTIVITY_COLORS = {
   NOTE: { bg: "#F9FAFB", text: "#6B7280", icon: "file-text" },
 } as const;
 
+export const SIZE_COLORS = {
+  STARTUP: { bg: "#F0FDF4", text: "#22C55E", border: "#BBF7D0" },
+  SMALL: { bg: "#EFF6FF", text: "#3B82F6", border: "#BFDBFE" },
+  MEDIUM: { bg: "#F5F3FF", text: "#8B5CF6", border: "#DDD6FE" },
+  ENTERPRISE: { bg: "#FFF7ED", text: "#F97316", border: "#FED7AA" },
+} as const;
+
 export const HIGHLIGHT_COLORS = {
   overdue: "#FEE2E2",
   hotDeal: "#FFEDD5",

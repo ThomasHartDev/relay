@@ -14,5 +14,15 @@ export const createCompanySchema = z.object({
 
 export const updateCompanySchema = createCompanySchema.partial();
 
+export const companyFilterSchema = z.object({
+  search: z.string().optional(),
+  size: companySizeSchema.optional(),
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(100).default(25),
+  sortBy: z.enum(["name", "createdAt", "updatedAt"]).default("createdAt"),
+  sortOrder: z.enum(["asc", "desc"]).default("desc"),
+});
+
 export type CreateCompanyInput = z.infer<typeof createCompanySchema>;
 export type UpdateCompanyInput = z.infer<typeof updateCompanySchema>;
+export type CompanyFilter = z.infer<typeof companyFilterSchema>;
