@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import {
   Users,
   Handshake,
@@ -103,17 +104,27 @@ export default function DashboardPage() {
   const { metrics, dealsByStage, recentActivities, topDeals } = data;
   const totalPipelineDeals = dealsByStage.reduce((sum, s) => sum + s.count, 0);
 
+  const stagger = {
+    hidden: {},
+    show: { transition: { staggerChildren: 0.06 } },
+  } as const;
+
+  const fadeUp = {
+    hidden: { opacity: 0, y: 12 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" as const } },
+  };
+
   return (
-    <div className="space-y-6">
-      <div>
+    <motion.div className="space-y-6" variants={stagger} initial="hidden" animate="show">
+      <motion.div variants={fadeUp}>
         <h2 className="text-2xl font-bold text-gray-900">Welcome back</h2>
         <p className="text-sm text-gray-500">
           Here&apos;s what&apos;s happening with your CRM today.
         </p>
-      </div>
+      </motion.div>
 
       {/* Key metrics — Miller's Law: 4 above the fold */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <motion.div variants={fadeUp} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard
           icon={<Users className="h-4 w-4" />}
           label="Total Contacts"
@@ -141,76 +152,80 @@ export default function DashboardPage() {
           }
           alert={metrics.overdueActivities > 0}
         />
-      </div>
+      </motion.div>
 
       {/* Von Restorff: overdue alert banner */}
       {metrics.overdueActivities > 0 && (
-        <div
-          className="flex cursor-pointer items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 transition-colors hover:bg-red-100"
-          onClick={() => router.push("/activities")}
-        >
-          <AlertTriangle className="h-4 w-4 text-red-500" />
-          <p className="text-sm font-medium text-red-700">
-            You have {metrics.overdueActivities} overdue activit
-            {metrics.overdueActivities !== 1 ? "ies" : "y"} — click to review
-          </p>
-        </div>
+        <motion.div variants={fadeUp}>
+          <div
+            className="flex cursor-pointer items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 transition-colors hover:bg-red-100"
+            onClick={() => router.push("/activities")}
+          >
+            <AlertTriangle className="h-4 w-4 text-red-500" />
+            <p className="text-sm font-medium text-red-700">
+              You have {metrics.overdueActivities} overdue activit
+              {metrics.overdueActivities !== 1 ? "ies" : "y"} — click to review
+            </p>
+          </div>
+        </motion.div>
       )}
 
       {/* Pipeline bar — Pre-attentive: stage colors for instant recognition */}
       {totalPipelineDeals > 0 && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Pipeline Summary</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex h-8 overflow-hidden rounded-full">
-              {dealsByStage
-                .filter((s) => s.count > 0)
-                .map((s) => {
-                  const colors = STAGE_COLORS[s.stage];
-                  const width = (s.count / totalPipelineDeals) * 100;
-                  return (
-                    <div
-                      key={s.stage}
-                      className="flex items-center justify-center text-xs font-medium transition-all"
-                      style={{
-                        width: `${width}%`,
-                        backgroundColor: colors.text,
-                        color: "#fff",
-                        minWidth: width > 0 ? "24px" : 0,
-                      }}
-                      title={`${DEAL_STAGE_LABELS[s.stage]}: ${s.count} deals — ${formatCurrency(s.value)}`}
-                    >
-                      {width > 8 ? s.count : ""}
-                    </div>
-                  );
-                })}
-            </div>
-            <div className="mt-3 flex flex-wrap gap-3">
-              {dealsByStage
-                .filter((s) => s.count > 0)
-                .map((s) => {
-                  const colors = STAGE_COLORS[s.stage];
-                  return (
-                    <div key={s.stage} className="flex items-center gap-1.5 text-xs">
-                      <span
-                        className="h-2.5 w-2.5 rounded-full"
-                        style={{ backgroundColor: colors.text }}
-                      />
-                      <span className="text-gray-600">
-                        {DEAL_STAGE_LABELS[s.stage]} ({s.count})
-                      </span>
-                    </div>
-                  );
-                })}
-            </div>
-          </CardContent>
-        </Card>
+        <motion.div variants={fadeUp}>
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Pipeline Summary</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex h-8 overflow-hidden rounded-full">
+                {dealsByStage
+                  .filter((s) => s.count > 0)
+                  .map((s) => {
+                    const colors = STAGE_COLORS[s.stage];
+                    const width = (s.count / totalPipelineDeals) * 100;
+                    return (
+                      <div
+                        key={s.stage}
+                        className="flex items-center justify-center text-xs font-medium transition-all"
+                        style={{
+                          width: `${width}%`,
+                          backgroundColor: colors.text,
+                          color: "#fff",
+                          minWidth: width > 0 ? "24px" : 0,
+                        }}
+                        title={`${DEAL_STAGE_LABELS[s.stage]}: ${s.count} deals — ${formatCurrency(s.value)}`}
+                      >
+                        {width > 8 ? s.count : ""}
+                      </div>
+                    );
+                  })}
+              </div>
+              <div className="mt-3 flex flex-wrap gap-3">
+                {dealsByStage
+                  .filter((s) => s.count > 0)
+                  .map((s) => {
+                    const colors = STAGE_COLORS[s.stage];
+                    return (
+                      <div key={s.stage} className="flex items-center gap-1.5 text-xs">
+                        <span
+                          className="h-2.5 w-2.5 rounded-full"
+                          style={{ backgroundColor: colors.text }}
+                        />
+                        <span className="text-gray-600">
+                          {DEAL_STAGE_LABELS[s.stage]} ({s.count})
+                        </span>
+                      </div>
+                    );
+                  })}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
       )}
 
       {/* Bottom grid — F-Pattern: recent activity left, top deals right */}
-      <div className="grid gap-4 lg:grid-cols-2">
+      <motion.div variants={fadeUp} className="grid gap-4 lg:grid-cols-2">
         {/* Recent Activities */}
         <Card>
           <CardHeader className="pb-3">
@@ -301,8 +316,8 @@ export default function DashboardPage() {
             )}
           </CardContent>
         </Card>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
 

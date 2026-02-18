@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Users,
   Building2,
@@ -204,120 +205,132 @@ export function CommandPalette() {
     [flatItems, selectedIndex, executeCommand, setCommandPaletteOpen],
   );
 
-  if (!commandPaletteOpen) return null;
-
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh]"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Command palette"
-      ref={dialogRef}
-    >
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/40"
-        aria-hidden="true"
-        onClick={() => setCommandPaletteOpen(false)}
-      />
-
-      {/* Palette */}
-      <div className="relative w-full max-w-lg rounded-xl border border-gray-200 bg-white shadow-2xl">
-        {/* Search input */}
-        <div className="flex items-center gap-3 border-b border-gray-200 px-4">
-          <Search className="h-5 w-5 shrink-0 text-gray-400" aria-hidden="true" />
-          <label htmlFor="command-input" className="sr-only">
-            Search commands
-          </label>
-          <input
-            id="command-input"
-            ref={inputRef}
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              setSelectedIndex(0);
-            }}
-            onKeyDown={handleKeyDown}
-            placeholder="Search or jump to..."
-            className="h-12 w-full bg-transparent text-sm text-gray-900 outline-none placeholder:text-gray-400"
-            role="combobox"
-            aria-expanded="true"
-            aria-controls="command-results"
-            aria-activedescendant={
-              flatItems[selectedIndex] ? `cmd-${flatItems[selectedIndex].id}` : undefined
-            }
+    <AnimatePresence>
+      {commandPaletteOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh]"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Command palette"
+          ref={dialogRef}
+        >
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="fixed inset-0 bg-black/40"
+            aria-hidden="true"
+            onClick={() => setCommandPaletteOpen(false)}
           />
-        </div>
 
-        {/* Results */}
-        <div
-          id="command-results"
-          className="max-h-80 overflow-y-auto p-2"
-          role="listbox"
-          aria-label="Search results"
-        >
-          {flatItems.length === 0 ? (
-            <p className="px-3 py-6 text-center text-sm text-gray-500" role="status">
-              No results found
-            </p>
-          ) : (
-            Object.entries(groupedItems).map(([group, items]) => (
-              <div key={group} className="mb-2" role="group" aria-label={group}>
-                <p
-                  className="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-gray-400"
-                  aria-hidden="true"
-                >
-                  {group}
+          {/* Palette */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96, y: -8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.96, y: -8 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            className="relative w-full max-w-lg rounded-xl border border-gray-200 bg-white shadow-2xl"
+          >
+            {/* Search input */}
+            <div className="flex items-center gap-3 border-b border-gray-200 px-4">
+              <Search className="h-5 w-5 shrink-0 text-gray-400" aria-hidden="true" />
+              <label htmlFor="command-input" className="sr-only">
+                Search commands
+              </label>
+              <input
+                id="command-input"
+                ref={inputRef}
+                value={query}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  setSelectedIndex(0);
+                }}
+                onKeyDown={handleKeyDown}
+                placeholder="Search or jump to..."
+                className="h-12 w-full bg-transparent text-sm text-gray-900 outline-none placeholder:text-gray-400"
+                role="combobox"
+                aria-expanded="true"
+                aria-controls="command-results"
+                aria-activedescendant={
+                  flatItems[selectedIndex] ? `cmd-${flatItems[selectedIndex].id}` : undefined
+                }
+              />
+            </div>
+
+            {/* Results */}
+            <div
+              id="command-results"
+              className="max-h-80 overflow-y-auto p-2"
+              role="listbox"
+              aria-label="Search results"
+            >
+              {flatItems.length === 0 ? (
+                <p className="px-3 py-6 text-center text-sm text-gray-500" role="status">
+                  No results found
                 </p>
-                {items.map((item) => {
-                  const index = flatItems.indexOf(item);
-                  const Icon = item.icon;
-                  return (
-                    <button
-                      key={item.id}
-                      id={`cmd-${item.id}`}
-                      role="option"
-                      aria-selected={index === selectedIndex}
-                      onClick={() => executeCommand(item)}
-                      onMouseEnter={() => setSelectedIndex(index)}
-                      className={cn(
-                        "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
-                        index === selectedIndex
-                          ? "bg-brand-50 text-brand-700"
-                          : "text-gray-700 hover:bg-gray-50",
-                      )}
+              ) : (
+                Object.entries(groupedItems).map(([group, items]) => (
+                  <div key={group} className="mb-2" role="group" aria-label={group}>
+                    <p
+                      className="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-gray-400"
+                      aria-hidden="true"
                     >
-                      <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
-                      <span>{item.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            ))
-          )}
-        </div>
+                      {group}
+                    </p>
+                    {items.map((item) => {
+                      const index = flatItems.indexOf(item);
+                      const Icon = item.icon;
+                      return (
+                        <button
+                          key={item.id}
+                          id={`cmd-${item.id}`}
+                          role="option"
+                          aria-selected={index === selectedIndex}
+                          onClick={() => executeCommand(item)}
+                          onMouseEnter={() => setSelectedIndex(index)}
+                          className={cn(
+                            "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
+                            index === selectedIndex
+                              ? "bg-brand-50 text-brand-700"
+                              : "text-gray-700 hover:bg-gray-50",
+                          )}
+                        >
+                          <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+                          <span>{item.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                ))
+              )}
+            </div>
 
-        {/* Footer hint */}
-        <div
-          className="flex items-center justify-between border-t border-gray-200 px-4 py-2 text-xs text-gray-400"
-          aria-hidden="true"
-        >
-          <span>
-            <kbd className="rounded border border-gray-200 px-1">&#8593;&#8595;</kbd> Navigate
-          </span>
-          <span>
-            <kbd className="rounded border border-gray-200 px-1">&#8629;</kbd> Select
-          </span>
-          <span>
-            <kbd className="rounded border border-gray-200 px-1">Esc</kbd> Close
-          </span>
-        </div>
-      </div>
+            {/* Footer hint */}
+            <div
+              className="flex items-center justify-between border-t border-gray-200 px-4 py-2 text-xs text-gray-400"
+              aria-hidden="true"
+            >
+              <span>
+                <kbd className="rounded border border-gray-200 px-1">&#8593;&#8595;</kbd> Navigate
+              </span>
+              <span>
+                <kbd className="rounded border border-gray-200 px-1">&#8629;</kbd> Select
+              </span>
+              <span>
+                <kbd className="rounded border border-gray-200 px-1">Esc</kbd> Close
+              </span>
+            </div>
+          </motion.div>
 
-      {/* Live region for screen reader announcements */}
-      <div className="sr-only" aria-live="polite" aria-atomic="true">
-        {flatItems.length} result{flatItems.length !== 1 ? "s" : ""} available
-      </div>
-    </div>
+          {/* Live region for screen reader announcements */}
+          <div className="sr-only" aria-live="polite" aria-atomic="true">
+            {flatItems.length} result{flatItems.length !== 1 ? "s" : ""} available
+          </div>
+        </div>
+      )}
+    </AnimatePresence>
   );
 }

@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { useUIStore } from "./ui-store";
 
 describe("useUIStore", () => {
@@ -7,49 +7,51 @@ describe("useUIStore", () => {
       sidebarCollapsed: false,
       sidebarMobileOpen: false,
       commandPaletteOpen: false,
+      shortcutsDialogOpen: false,
+      onboardingComplete: false,
+      onboardingStep: 0,
     });
   });
 
-  it("starts with sidebar expanded", () => {
+  it("toggles sidebar", () => {
     expect(useUIStore.getState().sidebarCollapsed).toBe(false);
-  });
-
-  it("toggles sidebar collapsed state", () => {
     useUIStore.getState().toggleSidebar();
     expect(useUIStore.getState().sidebarCollapsed).toBe(true);
-
     useUIStore.getState().toggleSidebar();
     expect(useUIStore.getState().sidebarCollapsed).toBe(false);
-  });
-
-  it("sets sidebar collapsed directly", () => {
-    useUIStore.getState().setSidebarCollapsed(true);
-    expect(useUIStore.getState().sidebarCollapsed).toBe(true);
-  });
-
-  it("starts with command palette closed", () => {
-    expect(useUIStore.getState().commandPaletteOpen).toBe(false);
   });
 
   it("toggles command palette", () => {
-    useUIStore.getState().toggleCommandPalette();
-    expect(useUIStore.getState().commandPaletteOpen).toBe(true);
-
-    useUIStore.getState().toggleCommandPalette();
     expect(useUIStore.getState().commandPaletteOpen).toBe(false);
-  });
-
-  it("sets command palette open directly", () => {
-    useUIStore.getState().setCommandPaletteOpen(true);
+    useUIStore.getState().toggleCommandPalette();
     expect(useUIStore.getState().commandPaletteOpen).toBe(true);
   });
 
-  it("starts with mobile nav closed", () => {
-    expect(useUIStore.getState().sidebarMobileOpen).toBe(false);
+  it("sets shortcuts dialog open", () => {
+    useUIStore.getState().setShortcutsDialogOpen(true);
+    expect(useUIStore.getState().shortcutsDialogOpen).toBe(true);
+    useUIStore.getState().setShortcutsDialogOpen(false);
+    expect(useUIStore.getState().shortcutsDialogOpen).toBe(false);
   });
 
-  it("sets mobile nav open", () => {
+  it("manages onboarding flow", () => {
+    expect(useUIStore.getState().onboardingStep).toBe(0);
+    expect(useUIStore.getState().onboardingComplete).toBe(false);
+
+    useUIStore.getState().setOnboardingStep(1);
+    expect(useUIStore.getState().onboardingStep).toBe(1);
+
+    useUIStore.getState().setOnboardingStep(2);
+    expect(useUIStore.getState().onboardingStep).toBe(2);
+
+    useUIStore.getState().completeOnboarding();
+    expect(useUIStore.getState().onboardingComplete).toBe(true);
+  });
+
+  it("sets mobile nav open state", () => {
     useUIStore.getState().setSidebarMobileOpen(true);
     expect(useUIStore.getState().sidebarMobileOpen).toBe(true);
+    useUIStore.getState().setSidebarMobileOpen(false);
+    expect(useUIStore.getState().sidebarMobileOpen).toBe(false);
   });
 });

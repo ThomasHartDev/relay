@@ -6,12 +6,17 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { CommandPalette } from "@/components/command-palette/command-palette";
+import { KeyboardShortcutsDialog } from "@/components/keyboard-shortcuts-dialog";
+import { OnboardingWizard } from "@/components/onboarding-wizard";
 import { SkipLink } from "@/components/ui/skip-link";
 import { useAuth } from "@/lib/auth-context";
+import { useKeyboardShortcuts } from "@/lib/hooks/use-keyboard-shortcuts";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
   const router = useRouter();
+
+  useKeyboardShortcuts();
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -56,6 +61,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
       {/* Command palette overlay */}
       <CommandPalette />
+
+      {/* Keyboard shortcuts help */}
+      <KeyboardShortcutsDialog />
+
+      {/* Onboarding for new users */}
+      <OnboardingWizard />
     </div>
   );
 }
