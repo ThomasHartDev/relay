@@ -1,0 +1,59 @@
+name: Claude Issue Handler
+
+on:
+  issues:
+    types: [opened, labeled]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  id-token: write
+
+jobs:
+  claude-fix:
+    if: >
+      (github.event_name == 'issues' && (github.event.action == 'opened' || (github.event.action == 'labeled' && github.event.label.name == 'claude'))) ||
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude'))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+
+      - run: pnpm install
+
+      - name: Run Claude Code
+        uses: anthropics/claude-code-action@beta
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          model: claude-sonnet-4-6
+          direct_prompt: |
+            Read this GitHub issue and fix it:
+
+            Title: ${{ github.event.issue.title }}
+            Body: ${{ github.event.issue.body }}
+            Labels: ${{ join(github.event.issue.labels.*.name, ', ') }}
+
+            Instructions:
+            1. Analyze the issue and understand what needs to be done
+            2. Read the relevant code files
+            3. Make the necessary changes
+            4. Run tests to verify nothing is broken
+            5. Run typecheck to verify types
+            6. Run lint to check style
+            7. If all checks pass, create a PR with your changes
+            8. Keep changes focused and minimal
+          allowed_tools: "Bash,Read,Write,Edit,Glob,Grep"
+          timeout_minutes: 30
