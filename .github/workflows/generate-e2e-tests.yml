@@ -1,0 +1,75 @@
+name: Generate E2E Tests
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 10 * * 1"
+
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+
+jobs:
+  generate-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+
+      - run: pnpm install
+
+      - name: Install Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Generate E2E Tests with Claude
+        uses: anthropics/claude-code-action@beta
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          model: claude-opus-4-6
+          direct_prompt: |
+            You are writing comprehensive Playwright E2E tests for this project.
+            Your goal is to ensure every user-facing feature works correctly.
+
+            STEP 1: SETUP
+            - Check if playwright.config.ts exists. If not, create it.
+            - Check if Playwright is in package.json devDependencies. If not, add it with `pnpm add -Dw @playwright/test`.
+            - Ensure there's a test:e2e script in package.json.
+
+            STEP 2: ANALYZE THE APP
+            - Read ALL source files to understand every page, component, and feature
+            - Map out the complete user journey (every route, every clickable element)
+            - Identify all forms, buttons, links, modals, dropdowns, tabs, and interactive elements
+            - Note any API calls, loading states, and error boundaries
+
+            STEP 3: START THE APP AND CRAWL IT
+            - Run `pnpm dev &` and wait for it to be ready
+            - Write a Playwright script to visit every route and take screenshots
+            - Log all console errors, failed network requests, and broken elements
+
+            STEP 4: WRITE COMPREHENSIVE TESTS
+            Create test files in `e2e/` directory covering:
+
+            A. SMOKE TESTS — every page loads without console errors or failed requests
+            B. INTERACTION TESTS — every button, link, dropdown, modal, tab works
+            C. FORM TESTS — fill, validate, submit, error messages for every form
+            D. USER FLOW TESTS — complete primary journeys start to finish
+            E. RESPONSIVE TESTS — mobile (375px), tablet (768px), desktop (1280px)
+            F. ERROR RESILIENCE — network failures, slow responses, error recovery
+
+            STEP 5: VERIFY TESTS PASS
+            Run `npx playwright test` and fix any failures. All tests must pass.
+
+            STEP 6: CREATE PR with all test files and a coverage summary.
+          allowed_tools: "Bash,Read,Write,Edit,Glob,Grep"
+          timeout_minutes: 45
