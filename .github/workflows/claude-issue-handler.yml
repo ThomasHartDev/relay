@@ -12,6 +12,10 @@ permissions:
   pull-requests: write
   id-token: write
 
+concurrency:
+  group: claude-issue-handler
+  cancel-in-progress: false
+
 jobs:
   claude-fix:
     if: >
