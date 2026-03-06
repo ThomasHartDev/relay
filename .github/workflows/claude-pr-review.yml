@@ -1,0 +1,39 @@
+name: Claude PR Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+  id-token: write
+
+jobs:
+  claude-review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Claude Code Review
+        uses: anthropics/claude-code-action@beta
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          model: claude-sonnet-4-6
+          direct_prompt: |
+            Review this pull request thoroughly. Check the diff and provide feedback on:
+
+            1. Security vulnerabilities (XSS, injection, credential exposure)
+            2. Performance issues (memory leaks, unnecessary re-renders, N+1 queries)
+            3. Test coverage (are new features tested? edge cases covered?)
+            4. Code quality (readability, naming, structure)
+            5. Error handling at system boundaries
+            6. Breaking changes or regressions
+
+            Be specific with file paths and line numbers.
+            Only flag real issues, not style preferences handled by linters.
+            If the PR looks good, say so briefly.
+          allowed_tools: "Bash,Read,Glob,Grep"
+          timeout_minutes: 15
