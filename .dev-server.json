@@ -1,0 +1,6 @@
+{
+  "ports": [{ "port": 4104, "label": "web", "ui": true, "healthCheck": "/" }],
+  "install": "pnpm install",
+  "dev": "pnpm --filter @relay/web exec next dev --port 4104",
+  "framework": "turbo"
+}
