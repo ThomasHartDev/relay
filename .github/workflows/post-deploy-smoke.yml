@@ -1,0 +1,62 @@
+name: Post-deploy smoke test
+
+# Probes /api/health on the just-deployed Vercel build after every successful
+# Production deploy. /api/health exercises the real primitives the app needs
+# (DB connectivity, external services if any), so if the deploy is broken in
+# a way the build itself didn't catch, this surfaces it before users do.
+#
+# We hit the deployment_status.environment_url so the test runs against the
+# exact deployment that just shipped, not whatever the production alias
+# happens to point at right now. Failure shows up as a red commit status.
+
+on:
+  deployment_status:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "Override URL to probe (defaults to latest production deploy)"
+        required: false
+
+jobs:
+  smoke:
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.deployment_status.state == 'success' &&
+       github.event.deployment_status.environment == 'Production')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve probe URL
+        id: url
+        run: |
+          set -euo pipefail
+          if [ -n "${{ github.event.inputs.url }}" ]; then
+            URL="${{ github.event.inputs.url }}"
+          else
+            URL="${{ github.event.deployment_status.environment_url }}"
+          fi
+          if [ -z "$URL" ] || [ "$URL" = "null" ]; then
+            echo "No URL resolved; nothing to probe."
+            exit 1
+          fi
+          echo "url=${URL%/}/api/health" >> "$GITHUB_OUTPUT"
+
+      - name: Probe /api/health
+        run: |
+          set -euo pipefail
+          URL="${{ steps.url.outputs.url }}"
+          echo "Hitting $URL"
+          # Retry up to 3 times with 10s backoff for cold starts + DNS settle.
+          for attempt in 1 2 3; do
+            HTTP_CODE=$(curl -s -o /tmp/health.json -w "%{http_code}" --max-time 30 "$URL" || echo "000")
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "Healthy"
+              cat /tmp/health.json | head -c 2000
+              exit 0
+            fi
+            echo "Attempt $attempt got HTTP $HTTP_CODE, retrying in 10s..."
+            cat /tmp/health.json 2>/dev/null | head -c 2000 || true
+            sleep 10
+          done
+          echo "Unhealthy after 3 attempts"
+          cat /tmp/health.json 2>/dev/null | head -c 4000 || true
+          exit 1
