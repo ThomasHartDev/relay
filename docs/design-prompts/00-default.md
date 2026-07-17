@@ -9,6 +9,7 @@ Paste the relevant section below into [claude.ai/design](https://claude.ai/desig
 > I'm working on `[PROJECT NAME]` — `[ONE-LINE DESCRIPTION OF WHAT IT IS, e.g. "an Electron desktop app for managing multi-project development workflows" or "a marketplace for vintage vinyl"]`. Stack: `[NEXT 15 / NUXT 4 / VITE + REACT 19 / SHOPIFY HYDROGEN / etc.]` with `[CSS MODULES / TAILWIND / CSS-IN-JS / VANILLA CSS]` for styling.
 >
 > The brand color palette uses these CSS variables (from `app/globals.css` or equivalent — replace with actual values):
+>
 > - `--color-accent: [HEX]` (primary brand)
 > - `--color-background: [HEX]` (page bg)
 > - `--color-foreground: [HEX]` (default text)
@@ -42,6 +43,7 @@ Paste the relevant section below into [claude.ai/design](https://claude.ai/desig
 ## Section 5 — Handoff prep (always include at end)
 
 > When the design is ready, package it as a Claude Code handoff bundle. I'll save the bundle to `design-bundles/<feature-slug>.json` in the project repo and pass it to Claude Code with: "implement design-bundles/<feature-slug>.json". Include in the bundle:
+>
 > - The component tree as nested elements with semantic HTML
 > - All CSS variables used (matching my project's existing names)
 > - Any new icons (preferring Lucide React icon names where they exist)
